@@ -1,0 +1,500 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <script src="https://unpkg.com/vue/dist/vue.js"></script>
+        <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+        <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+        <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    </head>
+    <body>
+        <div id="app" v-on:click='刷新数据'>
+          <div id="approot">
+            <div v-on:click='显示选项()'>
+            <el-row>
+            <el-progress id="progress" 
+            v-if="!错误提示" 
+            :stroke-width="进度条宽度" 
+            :text-inside="是否将文字显示于进度条内" 
+            :color="进度条颜色" 
+            v-bind:percentage="完成比例"
+            :type="进度条类型" 
+            v-on:click='显示选项()' 
+            :width="进度条图形大小"
+            >
+            </el-progress>
+            <span v-if="错误提示" style="width:95%;">{{错误提示}}</span>
+            </el-row>
+            </div>
+            <el-divider v-if ="是否显示选项"></el-divider>
+            <el-row v-if ="是否显示选项">
+                <el-select 
+                size = "mini"
+                v-model="条目数据源" 
+                placeholder="请选择数据范围"
+                @change="刷新数据">
+                    <el-option
+                    v-for="item in 条目数据源选项组"
+                    :key="item"
+                    :label="item"
+                    :value="item">
+                    </el-option>
+                </el-select>
+                <el-select size = "mini" v-model="进度条类型别名" placeholder="请选择进度条样式">
+                    <el-option
+                    v-for="item in 进度条类型选项组"
+                    :key="item.value"
+                    :label="item.label"
+                    :value="item.value">
+                    </el-option>
+                </el-select>
+                <el-switch  v-model="是否将文字显示于进度条内" v-if="进度条类型=='line'" active-text="数字显示在进度条内"></el-switch>
+                <el-switch  v-model="是否开启自动颜色" active-text="自动颜色"></el-switch>
+            </el-row>
+            <el-row v-if ="是否显示选项" style="display:flex;align-content: center;">
+                <el-col :span=21>
+                    <el-slider v-model="进度条宽度" ></el-slider>
+                    <el-slider v-model="进度条图形大小" v-if="进度条类型!='line'" :max=500></el-slider>
+                </el-col>
+                <el-col :span=1>
+                </el-col>
+                <el-col :span=5>
+                    <el-color-picker v-model="进度条颜色" v-if="!是否开启自动颜色" size = "mini"></el-color-picker>
+                </el-col>
+            </el-row>
+            <div v-if ="是否显示选项">
+            <el-row v-if="是否开启自动颜色" v-for="(v,i) in 自动颜色配置数组" style="display:flex;align-content: center;"> 
+                <el-col :span=21>
+                    <el-input-number v-model="v.percentage" placeholder="输入百分比值" size = "mini" :min="1" :max="100"></el-input-number>
+                </el-col>
+                <el-col :span=1>
+                </el-col>
+                <el-col :span=5>
+                    <el-color-picker v-model="v.color"  size = "mini"></el-color-picker>
+                </el-col>
+                <el-col :span=5>
+                    <el-button v-on:click="自动颜色配置数组.push({color: '#6f7ad3', percentage: 100})"  size = "mini">+</el-button>
+                </el-col>
+                <el-col :span=5>
+                    <el-button v-on:click="自动颜色配置数组.splice(i,1)"  size = "mini">-</el-button>
+                </el-col>
+            </el-row>
+            </div>
+            <el-button 
+            v-on:click="保存设置()"
+            v-if = 是否显示选项> 
+                保存设置
+            </el-button>    
+        </div>
+        </div>
+    </body>
+    <script class="vues">
+        var vm = new Vue({
+            el: '#app',
+            mounted:async function(){
+                /*获取挂件自身元素和ID,设定挂件自身自定义属性*/
+                this.hosturl = window.location.host
+                await this.获取自身元素()
+                this.挂件自身块 = await this.获取快信息以元素(this.挂件自身元素)
+                console.log("挂件自身块", this.挂件自身块)
+                this.挂件自身元素.setAttribute("cctype","进度条")
+                await this.设置属性以属性对象与ID([{"属性名":"cctype","属性值":"进度条"}],this.挂件自身ID)
+                /*获取挂件父块*/
+                this.挂件父块 = await this.获取父块信息自(this.挂件自身块)
+                console.log("挂件父块",this.挂件父块)
+                /*获取挂件兄弟块*/
+                this.挂件兄弟块数组 = await this.获取兄弟块信息自(this.挂件自身块)
+                console.log("挂件兄弟块",this.挂件兄弟块数组)
+                window.addEventListener("click",this.刷新数据)
+                window.parent.addEventListener("click",this.刷新数据)
+                window.parent.addEventListener("keydown",this.刷新数据)
+                await this.获取挂件设置()
+                await this.刷新数据(this.条目数据源)
+
+
+            },
+
+            data(){
+                return{
+                    是否显示选项:false,
+                    进度条颜色:"blue",
+                    是否开启自动颜色:false,
+                    进度条宽度:18,
+                    是否将文字显示于进度条内:true,
+                    错误提示:null,
+                    条目数据源:"挂件所在的任务列表",
+                    条目数据源选项组:[
+                        "挂件所在的任务列表",
+                        "挂件之后第一个任务列表",
+                        "挂件之前第一个任务列表",
+                        "挂件所在文档所有任务列表",
+                        "挂件所在文档子文档中的所有顶层任务列表"
+                    ],
+                    进度条类型:"line",
+                    进度条类型别名:"条形",
+                    进度条类型选项组:[
+                        {"value":"line","label":"条形"},
+                        {"value":"circle","label":"环形"},
+                        {"value":"dashboard","label":"仪表盘"},
+                    ],
+                    /*伺服路径*/
+                    hosturl:"",
+                    /*挂件自身元素*/
+                    挂件自身元素:{},
+                    /*挂件自身块*/
+                    挂件自身块:{},
+                    /*挂件自身id*/
+                    挂件自身ID:"",
+                    /*apitoken，只是占个坑*/
+                    apitoken:"",
+                    /*sql查询语句*/
+                    sqlstring:"",
+                    /*挂件的父块对应的元素*/
+                    挂件自身父元素:{},
+                    /*挂件父块*/
+                    挂件父块:{},
+                    /*挂件的兄弟块*/
+                    挂件兄弟块数组:[],
+                    /*完成百分比*/
+                    完成比例:100,
+                    /*sql查询缓存*/
+                    sqlTemp:{},
+                    /*sql查询语句头*/
+                    sql头 : "select * from blocks where ",
+                    /*任务列表数据*/
+                    待办条目数组:{},
+                    进度条图形大小:100,
+                    自动颜色配置数组:[ {color: '#f56c6c', percentage: 20},
+                                {color: '#e6a23c', percentage: 40},
+                                {color: '#5cb87a', percentage: 60},
+                                {color: '#1989fa', percentage: 80},
+                                {color: '#6f7ad3', percentage: 100}]
+                }
+            },
+            watch:{
+                是否开启自动颜色:{handler(val,oldval){
+                    if (val){
+                        this.进度条颜色 = this.自动颜色配置数组
+                            }
+                        }
+                    },
+                进度条类型别名:{handler(val,oldval){
+                    let that = this
+                    that.进度条类型=val
+                    if (val != 'line'){that.是否将文字显示于进度条内=false}
+                    console.log("style",that.进度条类型)
+                },
+                deep:true,
+                immediate:true,
+                },
+                进度条类型:{handler(val,oldval){
+                    let that = this
+                    if (val == 'line'||val == 'circle'||val == 'dashboard'){return null}
+                    that.进度条类型 = 'line'
+                },
+                deep:true,
+                immediate:true,
+                },
+                挂件自身元素:{handler(val,oldval){
+                    let that = this
+                    if (!val){that.错误提示 = `挂件的ip可能与主窗口不一致，建议优先通过模板插入挂件
+                    \n或者新建一个ifram块，资源设为widgets/jindutiao
+                    `}
+                },
+                deep:true,
+                immediate:true,
+                },
+            },
+            methods:{
+                获取挂件设置:async function(){
+                    console.log(this.挂件自身元素)
+                    let options = this.挂件自身元素.getAttribute("custom-ccoption")
+                    options = JSON.parse(options)
+                    console.log("进度条设置",options)
+
+                    this.条目数据源 = options["条目数据源"]
+                    this.进度条颜色 = options["进度条颜色"] 
+                    this.是否将文字显示于进度条内 = options["是否将文字显示于进度条内"]
+                    this.是否开启自动颜色 = options["是否开启自动颜色"]
+                    this.进度条类型别名 = options["进度条类型别名"]
+                    this.进度条宽度 = options["进度条宽度"]
+                    this.进度条图形大小 = options["进度条图形大小"]
+                    this.自动颜色配置数组 = options["自动颜色配置数组"]
+                    },
+                保存设置:async function(){
+                    let that = this
+                    let 临时对象 = {} 
+                    let options = {}
+                    options["条目数据源"] = that.条目数据源
+                    options["进度条颜色"] =that.进度条颜色
+                    options["是否将文字显示于进度条内"] = that.是否将文字显示于进度条内
+                    options["是否开启自动颜色"] = that.是否开启自动颜色
+                    options["进度条类型别名"] = that.进度条类型别名
+                    options["进度条宽度"] = that.进度条宽度
+                    options["进度条图形大小"] = that.进度条图形大小
+                    options["自动颜色配置数组"] = that.自动颜色配置数组
+                    options = JSON.stringify(options)
+                    that.挂件自身元素.setAttribute("ccoption",options)
+                    临时对象["属性名"]="ccoption"
+                    临时对象["属性值"]=options
+                    let temp = [临时对象]
+                    console.log("options",temp)
+                    console.log("options",that.挂件自身ID)
+                    that.设置属性以属性对象与ID(temp,that.挂件自身ID)
+                },
+                显示选项:function(){
+                    this.是否显示选项=!this.是否显示选项
+                },
+                刷新数据:async function(){
+                    let that = this
+                    await that.获取自身元素()
+                    console.log(that.挂件自身元素)
+                    let 待统计块 = {}
+                    let 待统计块数组 = []
+                    console.log(that.条目数据源)
+                    if (that.条目数据源 =="挂件所在的任务列表"){
+                        that.错误提示 = null
+                        if (that.挂件自身元素.parentElement.getAttribute("data-subtype")!="t"){
+                            that.错误提示 = "挂件不在任务列表中"}
+                        else{
+                            that.错误提示 = null    
+                            待统计块 =  await that.获取父块信息自(that.挂件父块)
+                            待统计块数组 = await that.获取子块自父块(待统计块)}
+                    }
+                    if (that.条目数据源 =="挂件之后第一个任务列表"){
+                        that.错误提示 = null
+                        let 挂件自身元素 = that.挂件自身元素
+                        console.log(that.挂件自身元素)
+                        let 待检查元素 =  挂件自身元素.nextSibling 
+
+                        if (!待检查元素){
+                        that.错误提示 = "挂件之后(同级)暂时没有显示的任务列表"
+                        }
+                        if (待检查元素.getAttribute("data-subtype")!="t"){
+                            待检查元素 = 待检查元素.nextSibling
+                        }
+                        else {待检查元素 = 待检查元素}
+                        if (待检查元素){
+                        console.log(待检查元素)
+                        待统计块 =  await that.获取快信息以元素(待检查元素)
+                        待统计块数组 = await that.获取子块自父块(待统计块)}
+                        else{that.错误提示 = "挂件之后(同级)暂时没有显示的任务列表"}
+                        }
+                    
+                    if (that.条目数据源 =="挂件之前第一个任务列表"){
+                        that.错误提示 = null
+                        let 挂件自身元素 = that.挂件自身元素
+                        console.log(that.挂件自身元素)
+                        let 待检查元素 =  挂件自身元素.previousSibling 
+                            if (待检查元素.getAttribute("data-subtype")!="t"){
+                                待检查元素 = 待检查元素.previousSibling
+                            }
+                            else {待检查元素 = 待检查元素}
+                        console.log(待检查元素)
+                        if (待检查元素.getAttribute("data-subtype")=="t"){
+                        待统计块 =  await that.获取快信息以元素(待检查元素)
+                        待统计块数组 = await that.获取子块自父块(待统计块)}
+                        else{that.错误提示 = "挂件之前(同级)暂时没有显示的任务列表"}
+                        }
+
+                    if (that.条目数据源 =="挂件所在文档所有任务列表"){
+                        that.错误提示 = null
+                        let docid = that.挂件自身块["root_id"]
+                        let sql语句拼接结果 = that.sql头 + "root_id = "+ "'"+docid+"'"+" AND parent_id in (select id from blocks where parent_id = " + "'"+docid+"'"+"and subtype = 't')" 
+                        待统计块数组 = await that.获取块信息以SQL(sql语句拼接结果)
+                        if (待统计块数组.length == 0){
+                            that.错误提示 ="文档内没有任务列表"
+                        }
+                    }
+                    if (that.条目数据源 =="挂件所在文档子文档中的所有顶层任务列表"){
+                        that.错误提示 = null
+                        let docid = that.挂件自身块["root_id"]
+                        let selfpath = that.挂件自身块["path"]
+                        let sql语句拼接结果 =that.sql头 + "path like" + "'" + selfpath.substring(0, selfpath.length - 3) + '/%.sy'+"'" +" and not path  like "+"'"+selfpath.substring(0, selfpath.length - 3) + '/%/%.sy'+"'"+" and subtype = 't' and root_id in (select id from blocks where " + "path like" + "'" + selfpath.substring(0, selfpath.length - 3) + '/%.sy'+"'" +" and path not like"+"'"+selfpath.substring(0, selfpath.length - 3) + '/%/%.sy'+"'"+" and type = 'd')"+ " and not parent_id in (select id from blocks where " + "path like" + "'" + selfpath.substring(0, selfpath.length - 3) + '/%.sy'+"'" +" and path not like"+"'"+selfpath.substring(0, selfpath.length - 3) + '/%/%.sy'+"'"+" and type = 'd')"
+                        console.log(sql语句拼接结果)
+                        let 临时待统计块数组 = []
+                        临时待统计块数组 = await that.获取块信息以SQL(sql语句拼接结果) 
+                        if (临时待统计块数组.length == 0){
+                            that.错误提示 ="子文档内顶层没有任务列表"
+                        }
+                        else{
+                            for(i=0;i<临时待统计块数组.length;i++){
+                            let flag = true
+                            for(j=0;j<临时待统计块数组.length;j++){
+                                if (临时待统计块数组[i]["parent_id"]==临时待统计块数组[j]["id"]){flag = false}
+                                }
+                            if (flag){待统计块数组.push(临时待统计块数组[i])} 
+                            }
+                        }
+                        }
+                    
+
+                    console.log("待统计块数组",待统计块数组)
+                    this.待办条目数组 =await that.获取待办条目自(待统计块数组)
+                    console.log(that.待办条目数组)
+                    that.计算比例自(that.待办条目数组)
+                },
+                
+                /*检查属性名，如果不在默认属性中就加上custom前缀*/
+                检查属性名:function(attr){
+                  let 缺省属性对象数组 = ["name","alias","memo","bookmark"]
+                  if (attr in 缺省属性对象数组){
+                      return attr
+                  }
+                  else {return "custom-"+attr}   
+                },
+                /*设定块属性*/
+                设置属性以属性对象与ID:async function(属性对象数组,id){
+                    let that = this 
+                    let data = {}
+                    console.log(属性对象数组)
+                    data["id"] = id
+                    data["attrs"] = {}
+                    for (i=0;i<属性对象数组.length;i++){
+                        let 临时属性对象 = 属性对象数组[i]
+                        /*检查属性名，如果不是内置属性就加上前缀*/
+                        let 临时名称 = that.检查属性名(临时属性对象["属性名"])
+                        console.log(临时名称)
+                        let 临时值 = 临时属性对象["属性值"]
+                        console.log(临时值)
+                        data["attrs"][临时名称] = 临时值
+                    }
+                    /*发送设定的属性*/
+                    console.log("setattr",data)
+                    await that.发送属性数据(data)
+                    console.log(data)
+                },
+                获取待办条目自:async function(块信息数组){
+                    let that = this
+                    let 待办条目数组 =  []
+                    console.log(块信息数组)
+                    let 已完成条目数组 = []
+                    for (i=0;i<块信息数组.length;i++){
+                        if (块信息数组[i]["subtype"] == "t"){
+                            let 临时块信息  = 块信息数组[i]
+                            待办条目数组.push(临时块信息)
+                            if (临时块信息["markdown"].slice(0,5)=="* [X]"){
+                                已完成条目数组.push(临时块信息)
+                            }
+                        }
+                    }
+                    let 临时对象 = {}
+                    临时对象["待办条目"]=待办条目数组
+                    临时对象["完成条目"]=已完成条目数组
+                    console.log(临时对象)
+                    return 临时对象
+                },
+                /*设定dom元素属性,并为部分块属性生成DOM图标*/
+                设置DOM元素属性:function(属性对象数组,id){
+                    let that = this
+                    let 块对应DOM对象 =  that.主界面DOC.queryselector("[data-node-id="+id+"]")
+                    for (i=0;i<属性对象数组.length;i++){
+                        let 临时属性对象 = 属性对象数组[i]
+                        /*检查属性名，如果不是内置属性就加上前缀*/
+                        let 临时名称 =  that.检查属性名(临时属性对象["属性名"])
+                        let 临时值 = 临时属性对象["属性值"]
+                        块对应DOM对象.setAttribute(j)
+                    }
+                },
+                /*获取挂件块自身DOM元素*/
+                获取自身元素:async function(){
+                    let that = this
+                    that.错误提示 = `挂件的ip可能与主窗口不一致，建议优先通过模板插入挂件
+                    \n或者新建一个ifram块，资源设为widgets/jindutiao
+                    `
+                    that.挂件自身元素 = self.frameElement.parentElement.parentElement
+                    that.挂件自身ID = that.挂件自身元素.getAttribute("data-node-id")
+                    that.错误提示 = null
+                    console.log("挂件所在元素",that.挂件自身元素)
+                },
+                /*获取挂件块自身id*/
+                获取快信息以元素:async function(DOM元素){
+                    let that = this
+                    let 临时ID = DOM元素.getAttribute("data-node-id")
+                    let 元素对应块信息 = await that.获取块信息以ID(临时ID)
+                    console.log("元素自身id",临时ID)
+                    console.log("元素自身块",元素对应块信息)
+                    return 元素对应块信息
+                },
+                /*计算百分比*/
+                计算比例自:async function(data){
+                    console.log("data",data)
+                    let m =  data["待办条目"].length
+                    let n =  data["完成条目"].length
+                    this.完成比例 = Math.round(n/m * 10000) / 100.00                    
+                },
+                /*根据id生成用于获取块属性的sql语句并获取对应快属性*/
+                获取块信息以ID:async function(id){
+                    let that = this
+                    let sql语句拼接结果 = that.sql头 + "id = "+ "'"+id+"'"
+                    console.log(sql语句拼接结果)
+                    let 块信息数组 =  await that.获取块信息以SQL(sql语句拼接结果) 
+                    let 块信息 = 块信息数组[0]
+                    console.log("blockifor=",块信息)
+                    return 块信息
+                },
+                /*根据块信息获取父级块*/
+                获取父块信息自:async function(块信息){
+                    let that = this
+                    let 父块ID =  块信息["parent_id"]
+                    let 父块信息 =  await that.获取块信息以ID(父块ID) 
+                    console.log("源块",块信息,"父块",父块信息)
+                    return 父块信息
+                },
+                /*根据块信息获取兄弟块*/
+                获取兄弟块信息自:async function(块信息){
+                    let that = this 
+                    let 父块ID =  块信息["parent_id"]
+                    let 兄弟块数组 = []
+                    兄弟块数组 =   await that.获取块信息以SQL(that.sql头+"parent_id ="+"'"+父块ID+"'")
+                    
+                    console.log("源块",块信息,"兄弟块",兄弟块数组)
+                    return 兄弟块数组
+                },
+                /*根据块信息获取子块*/
+                获取子块自父块:async function(块信息){
+                    let that = this
+                    let 父块ID  = 块信息["id"]
+                    let 子块列表 = [] 
+                    子块列表 = await that.获取块信息以SQL(that.sql头+"parent_id ="+"'"+父块ID+"'")
+                    console.log("源块",块信息,"子块",子块列表)
+                    return 子块列表
+                },
+
+                /*以sql语句从后台获取块信息*/
+                获取块信息以SQL:async function(sql语句){
+                let that =this
+                let datas = {"stmt": sql语句} 
+                let jsondatas = JSON.stringify(datas)
+                console.log(datas)
+                await axios({
+                        method:'POST',
+                        url:'http://'+that.hosturl + '/api/query/sql',
+                        headers:{'Authorization': 'Token' + that.apitoken},
+                        data:(jsondatas)
+                        }).then(result =>{
+                        console.log(result.data)
+                        let sqldataitem = result.data["data"]
+                        that.sqlTemp = sqldataitem 
+                        console.log("块信息",that.sqlTemp)
+                        })
+                return that.sqlTemp
+                },
+                /*发送块属性*/
+                发送属性数据: function(datas){
+                let jsondatas = JSON.stringify(datas)
+                console.log(datas)
+                axios({
+                    method:'POST',
+                    headers:{'Authorization': 'Token' + this.apitoken},
+                    url:'http://'+this.hosturl + '/api/attr/setBlockAttrs',
+                    data:(jsondatas)
+                    })
+                },
+
+            },
+        })
+
+    </script>
+</html>
