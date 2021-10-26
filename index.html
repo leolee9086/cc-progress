@@ -96,16 +96,16 @@
                 /*获取挂件自身元素和ID,设定挂件自身自定义属性*/
                 this.hosturl = window.location.host
                 await this.获取自身元素()
-                this.挂件自身块 = await this.获取快信息以元素(this.挂件自身元素)
-                console.log("挂件自身块", this.挂件自身块)
+                this.挂件自身块 = await this.获取块信息以元素(this.挂件自身元素)
+                //console.log("挂件自身块", this.挂件自身块)
                 this.挂件自身元素.setAttribute("cctype","进度条")
                 await this.设置属性以属性对象与ID([{"属性名":"cctype","属性值":"进度条"}],this.挂件自身ID)
                 /*获取挂件父块*/
                 this.挂件父块 = await this.获取父块信息自(this.挂件自身块)
-                console.log("挂件父块",this.挂件父块)
+                //console.log("挂件父块",this.挂件父块)
                 /*获取挂件兄弟块*/
                 this.挂件兄弟块数组 = await this.获取兄弟块信息自(this.挂件自身块)
-                console.log("挂件兄弟块",this.挂件兄弟块数组)
+                //console.log("挂件兄弟块",this.挂件兄弟块数组)
                 window.addEventListener("click",this.刷新数据)
                 window.parent.addEventListener("click",this.刷新数据)
                 window.parent.addEventListener("keydown",this.刷新数据)
@@ -128,8 +128,7 @@
                         "挂件所在的任务列表",
                         "挂件之后第一个任务列表",
                         "挂件之前第一个任务列表",
-                        "挂件所在文档所有任务列表",
-                        "挂件所在文档子文档中的所有顶层任务列表"
+                       
                     ],
                     进度条类型:"line",
                     进度条类型别名:"条形",
@@ -183,7 +182,7 @@
                     let that = this
                     that.进度条类型=val
                     if (val != 'line'){that.是否将文字显示于进度条内=false}
-                    console.log("style",that.进度条类型)
+                    //console.log("style",that.进度条类型)
                 },
                 deep:true,
                 immediate:true,
@@ -208,10 +207,12 @@
             },
             methods:{
                 获取挂件设置:async function(){
-                    console.log(this.挂件自身元素)
+                    //console.log(this.挂件自身元素)
                     let options = this.挂件自身元素.getAttribute("custom-ccoption")
+                    options = this.html转义(options)
+            
                     options = JSON.parse(options)
-                    console.log("进度条设置",options)
+                    //console.log("进度条设置",options)
 
                     this.条目数据源 = options["条目数据源"]
                     this.进度条颜色 = options["进度条颜色"] 
@@ -239,8 +240,8 @@
                     临时对象["属性名"]="ccoption"
                     临时对象["属性值"]=options
                     let temp = [临时对象]
-                    console.log("options",temp)
-                    console.log("options",that.挂件自身ID)
+                    //console.log("options",temp)
+                    //console.log("options",that.挂件自身ID)
                     that.设置属性以属性对象与ID(temp,that.挂件自身ID)
                 },
                 显示选项:function(){
@@ -249,10 +250,11 @@
                 刷新数据:async function(){
                     let that = this
                     await that.获取自身元素()
-                    console.log(that.挂件自身元素)
+                    //console.log(that.挂件自身元素)
                     let 待统计块 = {}
                     let 待统计块数组 = []
-                    console.log(that.条目数据源)
+                    //console.log(that.条目数据源)
+                    try{
                     if (that.条目数据源 =="挂件所在的任务列表"){
                         that.错误提示 = null
                         if (that.挂件自身元素.parentElement.getAttribute("data-subtype")!="t"){
@@ -265,7 +267,7 @@
                     if (that.条目数据源 =="挂件之后第一个任务列表"){
                         that.错误提示 = null
                         let 挂件自身元素 = that.挂件自身元素
-                        console.log(that.挂件自身元素)
+                      //  //console.log(that.挂件自身元素)
                         let 待检查元素 =  挂件自身元素.nextSibling 
 
                         if (!待检查元素){
@@ -276,8 +278,8 @@
                         }
                         else {待检查元素 = 待检查元素}
                         if (待检查元素){
-                        console.log(待检查元素)
-                        待统计块 =  await that.获取快信息以元素(待检查元素)
+                    //    //console.log(待检查元素)
+                        待统计块 =  await that.获取块信息以元素(待检查元素)
                         待统计块数组 = await that.获取子块自父块(待统计块)}
                         else{that.错误提示 = "挂件之后(同级)暂时没有显示的任务列表"}
                         }
@@ -285,54 +287,26 @@
                     if (that.条目数据源 =="挂件之前第一个任务列表"){
                         that.错误提示 = null
                         let 挂件自身元素 = that.挂件自身元素
-                        console.log(that.挂件自身元素)
+                      //  //console.log(that.挂件自身元素)
                         let 待检查元素 =  挂件自身元素.previousSibling 
                             if (待检查元素.getAttribute("data-subtype")!="t"){
                                 待检查元素 = 待检查元素.previousSibling
                             }
                             else {待检查元素 = 待检查元素}
-                        console.log(待检查元素)
+                   //     //console.log(待检查元素)
                         if (待检查元素.getAttribute("data-subtype")=="t"){
-                        待统计块 =  await that.获取快信息以元素(待检查元素)
+                        待统计块 =  await that.获取块信息以元素(待检查元素)
                         待统计块数组 = await that.获取子块自父块(待统计块)}
                         else{that.错误提示 = "挂件之前(同级)暂时没有显示的任务列表"}
                         }
 
-                    if (that.条目数据源 =="挂件所在文档所有任务列表"){
-                        that.错误提示 = null
-                        let docid = that.挂件自身块["root_id"]
-                        let sql语句拼接结果 = that.sql头 + "root_id = "+ "'"+docid+"'"+" AND parent_id in (select id from blocks where parent_id = " + "'"+docid+"'"+"and subtype = 't')" 
-                        待统计块数组 = await that.获取块信息以SQL(sql语句拼接结果)
-                        if (待统计块数组.length == 0){
-                            that.错误提示 ="文档内没有任务列表"
-                        }
-                    }
-                    if (that.条目数据源 =="挂件所在文档子文档中的所有顶层任务列表"){
-                        that.错误提示 = null
-                        let docid = that.挂件自身块["root_id"]
-                        let selfpath = that.挂件自身块["path"]
-                        let sql语句拼接结果 =that.sql头 + "path like" + "'" + selfpath.substring(0, selfpath.length - 3) + '/%.sy'+"'" +" and not path  like "+"'"+selfpath.substring(0, selfpath.length - 3) + '/%/%.sy'+"'"+" and subtype = 't' and root_id in (select id from blocks where " + "path like" + "'" + selfpath.substring(0, selfpath.length - 3) + '/%.sy'+"'" +" and path not like"+"'"+selfpath.substring(0, selfpath.length - 3) + '/%/%.sy'+"'"+" and type = 'd')"+ " and not parent_id in (select id from blocks where " + "path like" + "'" + selfpath.substring(0, selfpath.length - 3) + '/%.sy'+"'" +" and path not like"+"'"+selfpath.substring(0, selfpath.length - 3) + '/%/%.sy'+"'"+" and type = 'd')"
-                        console.log(sql语句拼接结果)
-                        let 临时待统计块数组 = []
-                        临时待统计块数组 = await that.获取块信息以SQL(sql语句拼接结果) 
-                        if (临时待统计块数组.length == 0){
-                            that.错误提示 ="子文档内顶层没有任务列表"
-                        }
-                        else{
-                            for(i=0;i<临时待统计块数组.length;i++){
-                            let flag = true
-                            for(j=0;j<临时待统计块数组.length;j++){
-                                if (临时待统计块数组[i]["parent_id"]==临时待统计块数组[j]["id"]){flag = false}
-                                }
-                            if (flag){待统计块数组.push(临时待统计块数组[i])} 
-                            }
-                        }
-                        }
+                    }catch(e){}
+                   
                     
 
-                    console.log("待统计块数组",待统计块数组)
+                    //console.log("待统计块数组",待统计块数组)
                     this.待办条目数组 =await that.获取待办条目自(待统计块数组)
-                    console.log(that.待办条目数组)
+                    //console.log(that.待办条目数组)
                     that.计算比例自(that.待办条目数组)
                 },
                 
@@ -348,27 +322,27 @@
                 设置属性以属性对象与ID:async function(属性对象数组,id){
                     let that = this 
                     let data = {}
-                    console.log(属性对象数组)
+                    //console.log(属性对象数组)
                     data["id"] = id
                     data["attrs"] = {}
                     for (i=0;i<属性对象数组.length;i++){
                         let 临时属性对象 = 属性对象数组[i]
                         /*检查属性名，如果不是内置属性就加上前缀*/
                         let 临时名称 = that.检查属性名(临时属性对象["属性名"])
-                        console.log(临时名称)
+                        //console.log(临时名称)
                         let 临时值 = 临时属性对象["属性值"]
-                        console.log(临时值)
+                        //console.log(临时值)
                         data["attrs"][临时名称] = 临时值
                     }
                     /*发送设定的属性*/
-                    console.log("setattr",data)
+                    //console.log("setattr",data)
                     await that.发送属性数据(data)
-                    console.log(data)
+                    //console.log(data)
                 },
                 获取待办条目自:async function(块信息数组){
                     let that = this
                     let 待办条目数组 =  []
-                    console.log(块信息数组)
+                    //console.log(块信息数组)
                     let 已完成条目数组 = []
                     for (i=0;i<块信息数组.length;i++){
                         if (块信息数组[i]["subtype"] == "t"){
@@ -382,7 +356,7 @@
                     let 临时对象 = {}
                     临时对象["待办条目"]=待办条目数组
                     临时对象["完成条目"]=已完成条目数组
-                    console.log(临时对象)
+                    //console.log(临时对象)
                     return 临时对象
                 },
                 /*设定dom元素属性,并为部分块属性生成DOM图标*/
@@ -406,20 +380,20 @@
                     that.挂件自身元素 = self.frameElement.parentElement.parentElement
                     that.挂件自身ID = that.挂件自身元素.getAttribute("data-node-id")
                     that.错误提示 = null
-                    console.log("挂件所在元素",that.挂件自身元素)
+                    //console.log("挂件所在元素",that.挂件自身元素)
                 },
                 /*获取挂件块自身id*/
-                获取快信息以元素:async function(DOM元素){
+                获取块信息以元素:async function(DOM元素){
                     let that = this
                     let 临时ID = DOM元素.getAttribute("data-node-id")
                     let 元素对应块信息 = await that.获取块信息以ID(临时ID)
-                    console.log("元素自身id",临时ID)
-                    console.log("元素自身块",元素对应块信息)
+                    //console.log("元素自身id",临时ID)
+                    //console.log("元素自身块",元素对应块信息)
                     return 元素对应块信息
                 },
                 /*计算百分比*/
                 计算比例自:async function(data){
-                    console.log("data",data)
+                    //console.log("data",data)
                     let m =  data["待办条目"].length
                     let n =  data["完成条目"].length
                     this.完成比例 = Math.round(n/m * 10000) / 100.00                    
@@ -428,10 +402,10 @@
                 获取块信息以ID:async function(id){
                     let that = this
                     let sql语句拼接结果 = that.sql头 + "id = "+ "'"+id+"'"
-                    console.log(sql语句拼接结果)
+                    //console.log(sql语句拼接结果)
                     let 块信息数组 =  await that.获取块信息以SQL(sql语句拼接结果) 
                     let 块信息 = 块信息数组[0]
-                    console.log("blockifor=",块信息)
+                    //console.log("blockifor=",块信息)
                     return 块信息
                 },
                 /*根据块信息获取父级块*/
@@ -439,7 +413,7 @@
                     let that = this
                     let 父块ID =  块信息["parent_id"]
                     let 父块信息 =  await that.获取块信息以ID(父块ID) 
-                    console.log("源块",块信息,"父块",父块信息)
+                    //console.log("源块",块信息,"父块",父块信息)
                     return 父块信息
                 },
                 /*根据块信息获取兄弟块*/
@@ -449,7 +423,7 @@
                     let 兄弟块数组 = []
                     兄弟块数组 =   await that.获取块信息以SQL(that.sql头+"parent_id ="+"'"+父块ID+"'")
                     
-                    console.log("源块",块信息,"兄弟块",兄弟块数组)
+                    //console.log("源块",块信息,"兄弟块",兄弟块数组)
                     return 兄弟块数组
                 },
                 /*根据块信息获取子块*/
@@ -458,7 +432,7 @@
                     let 父块ID  = 块信息["id"]
                     let 子块列表 = [] 
                     子块列表 = await that.获取块信息以SQL(that.sql头+"parent_id ="+"'"+父块ID+"'")
-                    console.log("源块",块信息,"子块",子块列表)
+                    //console.log("源块",块信息,"子块",子块列表)
                     return 子块列表
                 },
 
@@ -466,25 +440,24 @@
                 获取块信息以SQL:async function(sql语句){
                 let that =this
                 let datas = {"stmt": sql语句} 
-                let jsondatas = JSON.stringify(datas)
-                console.log(datas)
+                //console.log(datas)
                 await axios({
                         method:'POST',
                         url:'http://'+that.hosturl + '/api/query/sql',
                         headers:{'Authorization': 'Token' + that.apitoken},
-                        data:(jsondatas)
+                        data:(datas)
                         }).then(result =>{
-                        console.log(result.data)
+                        //console.log(result.data)
                         let sqldataitem = result.data["data"]
                         that.sqlTemp = sqldataitem 
-                        console.log("块信息",that.sqlTemp)
+                        //console.log("块信息",that.sqlTemp)
                         })
                 return that.sqlTemp
                 },
                 /*发送块属性*/
                 发送属性数据: function(datas){
                 let jsondatas = JSON.stringify(datas)
-                console.log(datas)
+                //console.log(datas)
                 axios({
                     method:'POST',
                     headers:{'Authorization': 'Token' + this.apitoken},
@@ -492,6 +465,14 @@
                     data:(jsondatas)
                     })
                 },
+                html转义(原始字符串){
+                var 临时元素 = document.createElement("div"); 
+                临时元素.innerHTML = 原始字符串; 
+                var output = 临时元素.innerText || 临时元素.textContent; 
+                临时元素 = null; 
+              ///  //console.log(output)
+                return output; 
+                 },
 
             },
         })
